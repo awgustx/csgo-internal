@@ -92,6 +92,7 @@ There's no one like him
 Nobody like chungus
 Huh */
 
+#include "globals/globals.h"
 #include "game/sdk/includes/includes.h"
 #include "globals/fonts/fonts.h"
 #include "globals/includes/includes.h"
@@ -143,7 +144,8 @@ static unsigned long __stdcall on_attach( void* instance )
 		g_console.print( "initialised hooks" );
 
 	LI_FN( GetWindowsDirectoryA )( g_ctx.m_windows_directory, 64 );
-	g_console.print( fmt::format( "windows directory - {:s}", g_ctx.m_windows_directory ).c_str( ) );
+	g_console.print( "windows directory - " );
+	g_console.print( g_ctx.m_windows_directory );
 
 	g_fonts.on_attach( );
 	g_console.print( "initialised font file vector" );
