@@ -51,8 +51,8 @@ jobs:
           $vcpkgLib = Join-Path $env:VCPKG_INSTALLATION_ROOT 'installed/x86-windows-static-md/lib'
           $oldCl = $oldCl -replace '/std:c17', ''
           $env:CL = '/wd4828 /I"' + $env:DXSDK_INCLUDE + '" /I"' + $vcpkgInclude + '" /I"' + $freetypeInclude + '" ' + $oldCl
-          $env:LINK = '/LIBPATH:"' + $env:DXSDK_LIB + '" /LIBPATH:"' + $vcpkgLib + '" ' + $oldLink
-          msbuild ./csgo-sdk/csgo-sdk.vcxproj /m /t:Rebuild /p:Configuration=Release /p:Platform=Win32 /p:VcpkgEnabled=true /p:VcpkgTriplet=x86-windows-static-md /p:LanguageStandard=stdcpp20 /p:AdditionalDependencies=d3dx9.lib%3Bd3d9.lib%3Bd3dcompiler.lib%3Bfreetype.lib
+          $env:LINK = '/LIBPATH:"' + $env:DXSDK_LIB + '" /LIBPATH:"' + $vcpkgLib + '" /DEFAULTLIB:freetype.lib /DEFAULTLIB:fmt.lib /DEFAULTLIB:libpng16.lib /DEFAULTLIB:zlib.lib /DEFAULTLIB:bz2.lib /DEFAULTLIB:brotlidec.lib /DEFAULTLIB:brotlienc.lib /DEFAULTLIB:brotlicommon.lib ' + $oldLink
+          msbuild ./csgo-sdk/csgo-sdk.vcxproj /m /t:Rebuild /p:Configuration=Release /p:Platform=Win32 /p:VcpkgEnabled=true /p:VcpkgTriplet=x86-windows-static-md /p:LanguageStandard=stdcpp20 /p:AdditionalDependencies=d3dx9.lib%3Bd3d9.lib%3Bd3dcompiler.lib%3Bfreetype.lib%3Bfmt.lib
           if ($LASTEXITCODE -ne 0) { throw 'MSBuild failed' }
           Copy-Item (Join-Path $env:DXSDK_BIN 'D3DX9_43.dll') -Destination './csgo-sdk/release/D3DX9_43.dll' -Force
 
