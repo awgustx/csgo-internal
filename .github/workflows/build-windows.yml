@@ -41,7 +41,11 @@ jobs:
       - name: Build Release x64 DLL
         shell: pwsh
         run: |
-          msbuild .\csgo-sdk\csgo-sdk.vcxproj /m /t:Rebuild /p:Configuration=Release /p:Platform=x64 /p:VcpkgEnabled=true /p:LanguageStandard=stdcpplatest "/p:AdditionalIncludeDirectories=$env:DXSDK_INCLUDE" "/p:AdditionalLibraryDirectories=$env:DXSDK_LIB" /p:AdditionalDependencies=d3dx9.lib%3Bd3d9.lib%3Bd3dcompiler.lib
+          $oldCl = if ($env:CL) { $env:CL } else { '' }
+          $oldLink = if ($env:LINK) { $env:LINK } else { '' }
+          $env:CL = '/std:c++17 /I"' + $env:DXSDK_INCLUDE + '" ' + $oldCl
+          $env:LINK = '/LIBPATH:"' + $env:DXSDK_LIB + '" ' + $oldLink
+          msbuild .\csgo-sdk\csgo-sdk.vcxproj /m /t:Rebuild /p:Configuration=Release /p:Platform=x64 /p:VcpkgEnabled=true /p:LanguageStandard=stdcpp17 /p:AdditionalDependencies=d3dx9.lib%3Bd3d9.lib%3Bd3dcompiler.lib
 
       - name: Upload DLL
         uses: actions/upload-artifact@v4
