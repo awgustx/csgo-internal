@@ -1,5 +1,5 @@
-#include "entity.h"
 #include "../../../globals/includes/includes.h"
+#include "entity.h"
 #include "../includes/includes.h"
 
 #include <array>
