@@ -1,0 +1,179 @@
+name: Build Windows DLL
+
+
+
+on:
+
+  workflow_dispatch:
+  
+
+
+permissions:
+
+  contents: read
+  
+
+
+jobs:
+
+  build:
+  
+    runs-on: windows-2022
+    
+
+
+    steps:
+    
+      - name: Checkout
+      
+        uses: actions/checkout@v4
+        
+
+
+      - name: Configure MSBuild
+      
+        uses: microsoft/setup-msbuild@v2
+        
+
+
+      - name: Install project dependencies
+      
+        shell: pwsh
+        
+        run: |
+        
+          $vcpkg = Join-Path $env:VCPKG_INSTALLATION_ROOT 'vcpkg.exe'
+          
+          & $vcpkg install `
+          
+            jsoncpp:x64-windows `
+            
+            curl:x64-windows `
+            
+            spdlog:x64-windows
+            
+          if ($LASTEXITCODE -ne 0) {
+          
+            throw "vcpkg failed with exit code $LASTEXITCODE"
+            
+          }
+          
+
+
+      - name: Build Release x64 DLL
+      
+        shell: pwsh
+        
+        run: |
+        
+          msbuild .\csgo-sdk\csgo-sdk.sln `
+          
+            /m `
+            
+            /t:Rebuild `
+            
+            /p:Configuration=Release `
+            
+            /p:Platform=x64 `
+            
+            /p:WindowsTargetPlatformVersion=10.0.22621.0 `
+            
+            /p:VcpkgEnabled=true `
+            
+            /p:VcpkgTriplet=x64-windows `
+            
+            /verbosity:minimal
+            
+          if ($LASTEXITCODE -ne 0) {
+          
+            throw "MSBuild failed with exit code $LASTEXITCODE"
+            
+          }
+          
+
+
+      - name: Show generated DLLs
+      
+        shell: pwsh
+        
+        run: |
+        
+          $dlls = Get-ChildItem -Path . -Recurse -Filter *.dll -File
+          
+          if (-not $dlls) {
+          
+            throw 'No DLL was generated'
+            
+          }
+          
+          $dlls | Select-Object FullName, Length
+          
+
+
+      - name: Upload build artifacts
+      
+        uses: actions/upload-artifact@v4
+        
+        with:
+        
+          name: csgo-internal-release-x64
+          
+          if-no-files-found: error
+          
+          path: |
+          
+            csgo-sdk/**/*.dll
+            
+            csgo-sdk/**/*.pdb
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
