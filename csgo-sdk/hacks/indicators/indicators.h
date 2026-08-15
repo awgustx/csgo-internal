@@ -39,7 +39,6 @@ namespace n_indicators
 		void keybind_indicators( );
 		void velocity( const bool on_ground );
 		void stamina( const bool on_ground );
-		void fps_warning( );
 	};
 } // namespace n_indicators
 
