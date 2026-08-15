@@ -1,4 +1,5 @@
 #include "auto_wall.h"
+#include "../../globals/globals.h"
 #include "../../game/sdk/includes/includes.h"
 #include "../../globals/includes/includes.h"
 #include "../entity_cache/entity_cache.h"
