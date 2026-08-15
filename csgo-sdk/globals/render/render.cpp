@@ -2,6 +2,7 @@
 #include "../../dependencies/avatar_data/avatar_data.h"
 #include "../../dependencies/imgui/helpers/fonts.h"
 
+#include "../globals.h"
 #include "../../game/sdk/includes/includes.h"
 #include "../includes/includes.h"
 
@@ -151,9 +152,10 @@ void n_render::impl_t::on_end_scene( const std::function< void( ) >& function, I
 
 		const font_setting_t indicator_font_setting = GET_VARIABLE( g_variables.m_indicator_font_settings, font_setting_t );
 
-		m_custom_fonts[ e_custom_font_names::custom_font_name_indicator ] = io.Fonts->AddFontFromFileTTF(
-			std::vformat( "{}\\Fonts\\{}.ttf", std::make_format_args( g_ctx.m_windows_directory, indicator_font_setting.m_name ) ).c_str( ),
-			indicator_font_setting.m_size, &indicator_font_config );
+		const std::string indicator_font_path =
+			std::string( g_ctx.m_windows_directory ) + "\\Fonts\\" + indicator_font_setting.m_name + ".ttf";
+		m_custom_fonts[ e_custom_font_names::custom_font_name_indicator ] =
+			io.Fonts->AddFontFromFileTTF( indicator_font_path.c_str( ), indicator_font_setting.m_size, &indicator_font_config );
 
 		ImGuiFreeType::BuildFontAtlas( io.Fonts, 0x0 );
 
