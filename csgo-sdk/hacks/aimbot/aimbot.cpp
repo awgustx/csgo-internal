@@ -1,4 +1,5 @@
 #include "aimbot.h"
+#include "../../globals/globals.h"
 #include "../../game/sdk/includes/includes.h"
 #include "../../globals/includes/includes.h"
 #include "../auto_wall/auto_wall.h"
