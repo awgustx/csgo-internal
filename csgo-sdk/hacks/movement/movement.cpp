@@ -1,4 +1,5 @@
 #include "movement.h"
+#include "../../globals/globals.h"
 #include "../../game/sdk/includes/includes.h"
 #include "../../globals/includes/includes.h"
 #include "../prediction/prediction.h"
@@ -20,8 +21,24 @@ void n_movement::impl_t::on_create_move_pre( )
 
 void n_movement::impl_t::bunny_hop( )
 {
-	if ( !( g_ctx.m_local->get_flags( ) & e_flags::fl_onground ) )
-		g_ctx.m_cmd->m_buttons &= ~e_command_buttons::in_jump;
+	static bool jumped_last_tick = false;
+	static bool should_fake_jump = false;
+
+	if ( !jumped_last_tick && should_fake_jump ) {
+		should_fake_jump = false;
+		g_ctx.m_cmd->m_buttons |= e_command_buttons::in_jump;
+	} else if ( g_ctx.m_cmd->m_buttons & e_command_buttons::in_jump ) {
+		if ( g_ctx.m_local->get_flags( ) & e_flags::fl_onground ) {
+			jumped_last_tick = true;
+			should_fake_jump = true;
+		} else {
+			g_ctx.m_cmd->m_buttons &= ~e_command_buttons::in_jump;
+			jumped_last_tick = false;
+		}
+	} else {
+		jumped_last_tick = false;
+		should_fake_jump = false;
+	}
 }
 
 void n_movement::impl_t::on_create_move_post( )
@@ -205,146 +222,17 @@ void n_movement::impl_t::pixel_surf_fix( )
 
 void n_movement::impl_t::edge_bug( )
 {
-	if ( !( GET_VARIABLE( g_variables.m_edge_bug, bool ) && g_input.check_input( &GET_VARIABLE( g_variables.m_edge_bug_key, key_bind_t ) ) ) ||
-	     g_movement.m_pixelsurf_data.m_in_pixel_surf  ) {
-		m_edgebug_data.reset( );
+	const bool enabled = GET_VARIABLE( g_variables.m_edge_bug, bool ) &&
+	                     g_input.check_input( &GET_VARIABLE( g_variables.m_edge_bug_key, key_bind_t ) );
+
+	// Keep the legacy state inert so the old mouse-lock hook cannot act on stale data.
+	m_edgebug_data.reset( );
+
+	if ( !enabled )
 		return;
-	}
 
-	const float yaw_delta =
-		std::clamp( g_prediction.backup_data.m_view_angles.m_y - g_ctx.m_last_tick_yaw,
-	                -( 180.f / GET_VARIABLE( g_variables.m_edge_bug_ticks, int ) ), 180.f / GET_VARIABLE( g_variables.m_edge_bug_ticks, int ) );
-
-	const float original_forward_move = g_ctx.m_cmd->m_forward_move;
-	const float original_side_move    = g_ctx.m_cmd->m_side_move;
-	const auto original_view_point    = g_ctx.m_cmd->m_view_point;
-
-	const auto loop_through_ticks = [ & ]( const bool ducked, const bool strafe = false ) {
-		if ( m_edgebug_data.m_will_edgebug )
-			return;
-
-		g_prediction.restore_entity_to_predicted_frame( g_interfaces.m_prediction->m_commands_predicted - 1 );
-
-		g_movement.m_edgebug_data.m_starting_yaw = original_view_point.m_y;
-
-		for ( int i = 0; i <= GET_VARIABLE( g_variables.m_edge_bug_ticks, int ); i++ ) {
-			c_user_cmd* simulated_cmd = new c_user_cmd( *g_ctx.m_cmd );
-
-			simulated_cmd->m_buttons |= e_command_buttons::in_bullrush;
-
-			if ( ducked ) {
-				simulated_cmd->m_buttons |= e_command_buttons::in_duck;
-				g_ctx.m_local->get_flags( ) |= e_flags::fl_ducking;
-			} else {
-				simulated_cmd->m_buttons &= ~e_command_buttons::in_duck;
-				g_ctx.m_local->get_flags( ) &= ~e_flags::fl_ducking;
-			}
-
-			if ( !strafe ) {
-				m_edgebug_data.m_strafing = false;
-
-				simulated_cmd->m_forward_move = 0;
-				simulated_cmd->m_side_move    = 0;
-
-				// p sure these are not needed, but just making sure
-				simulated_cmd->m_buttons &= ~( e_command_buttons::in_jump | e_command_buttons::in_forward | e_command_buttons::in_back |
-				                               e_command_buttons::in_moveleft | e_command_buttons::in_moveright );
-			} else // strafed
-			{
-				m_edgebug_data.m_strafing = true;
-
-				simulated_cmd->m_forward_move = original_forward_move;
-				simulated_cmd->m_side_move    = original_side_move;
-
-				simulated_cmd->m_view_point.m_y = g_math.normalize_angle( original_view_point.m_y + ( yaw_delta * i ) );
-			}
-
-			g_prediction.begin( g_ctx.m_local, simulated_cmd );
-			g_prediction.end( g_ctx.m_local );
-
-			if ( g_prediction.backup_data.m_flags & e_flags::fl_onground || round( g_prediction.backup_data.m_velocity.m_z ) >= 0 ||
-			     g_ctx.m_local->get_flags( ) & fl_onground || g_ctx.m_local->get_move_type( ) == e_move_types::move_type_ladder ) {
-				m_edgebug_data.m_will_edgebug = false;
-				break;
-			}
-
-			if ( !m_edgebug_data.m_will_edgebug )
-				this->detect_edgebug( simulated_cmd );
-
-			if ( m_edgebug_data.m_will_edgebug ) {
-				m_edgebug_data.m_saved_mousedx = std::abs( simulated_cmd->m_mouse_delta_x );
-				m_edgebug_data.m_ticks_to_stop = i + 1;
-				m_edgebug_data.m_last_tick     = g_interfaces.m_global_vars_base->m_tick_count;
-
-				if ( ducked )
-					m_edgebug_data.m_edgebug_method = edgebug_type_t::eb_ducking;
-				else
-					m_edgebug_data.m_edgebug_method = edgebug_type_t::eb_standing;
-
-				if ( strafe ) {
-					m_edgebug_data.m_yaw_delta = yaw_delta;
-
-					m_edgebug_data.m_forward_move = original_forward_move;
-					m_edgebug_data.m_side_move    = original_side_move;
-				} else {
-					m_edgebug_data.m_forward_move = m_edgebug_data.m_side_move = 0;
-				}
-				break;
-			}
-
-			if ( m_edgebug_data.m_will_fail ) {
-				m_edgebug_data.m_will_fail = false;
-				break;
-			}
-
-			delete simulated_cmd;
-		}
-
-		g_prediction.begin( g_ctx.m_local, g_ctx.m_cmd );
-		g_prediction.end( g_ctx.m_local );
-
-		g_prediction.restore_entity_to_predicted_frame( g_interfaces.m_prediction->m_commands_predicted - 1 );
-	};
-
-	// non strafed edgebugs
-	loop_through_ticks( edgebug_type_t::eb_standing );
-	loop_through_ticks( edgebug_type_t::eb_ducking );
-
-	// strafed edgebugs
-	if ( GET_VARIABLE( g_variables.m_advanced_detection, bool ) &&
-	     yaw_delta < ( GET_VARIABLE( g_variables.m_edge_bug_strafe_delta_max, float ) / 10000.f ) && !g_ctx.m_low_fps ) {
-		loop_through_ticks( edgebug_type_t::eb_standing, true );
-		loop_through_ticks( edgebug_type_t::eb_ducking, true );
-	}
-
-	if ( m_edgebug_data.m_will_edgebug ) {
-		g_prediction.restore_entity_to_predicted_frame( g_interfaces.m_prediction->m_commands_predicted - 1 );
-
-		if ( g_interfaces.m_global_vars_base->m_tick_count < m_edgebug_data.m_ticks_to_stop + m_edgebug_data.m_last_tick + 1 ) {
-			g_ctx.m_cmd->m_buttons &= ~( e_command_buttons::in_jump | e_command_buttons::in_forward | e_command_buttons::in_back |
-			                             e_command_buttons::in_moveleft | e_command_buttons::in_moveright );
-
-			if ( m_edgebug_data.m_strafing ) {
-				g_ctx.m_cmd->m_side_move    = m_edgebug_data.m_side_move;
-				g_ctx.m_cmd->m_forward_move = m_edgebug_data.m_forward_move;
-
-				const float final_yaw = g_math.normalize_angle(
-					m_edgebug_data.m_starting_yaw +
-					( m_edgebug_data.m_yaw_delta * ( g_interfaces.m_global_vars_base->m_tick_count - m_edgebug_data.m_last_tick ) ) );
-
-				g_ctx.m_cmd->m_view_point.m_y = final_yaw;
-
-			} else {
-				g_ctx.m_cmd->m_side_move    = 0.f;
-				g_ctx.m_cmd->m_forward_move = 0.f;
-			}
-			if ( m_edgebug_data.m_edgebug_method == edgebug_type_t::eb_ducking ) {
-				g_ctx.m_cmd->m_buttons |= in_duck;
-			} else
-				g_ctx.m_cmd->m_buttons &= ~in_duck;
-		} else
-			m_edgebug_data.reset( );
-	}
+	if ( ( g_prediction.backup_data.m_flags & e_flags::fl_onground ) && g_ctx.m_local->is_alive( ) )
+		g_ctx.m_cmd->m_buttons = e_command_buttons::in_duck;
 }
 
 void n_movement::impl_t::long_jump( )
@@ -551,29 +439,48 @@ void n_movement::impl_t::pixel_surf( float target_ps_velocity )
 
 void n_movement::impl_t::jump_bug( )
 {
-	[[unlikely]] if ( !( g_ctx.m_cmd->m_buttons & e_command_buttons::in_jump ) )
-	{
-		static bool ducked = false;
+	if ( !( g_ctx.m_local->get_flags( ) & e_flags::fl_onground ) )
+		return;
 
-		if ( g_ctx.m_local->get_flags( ) & e_flags::fl_onground && !( g_prediction.backup_data.m_flags & e_flags::fl_onground ) && !ducked ) {
-			g_ctx.m_cmd->m_buttons |= e_command_buttons::in_duck;
-			ducked = true;
-		} else
-			ducked = false;
+	constexpr float max_radius = 2.0f * 3.14159265358979323846f;
+	constexpr float step = max_radius / 128.0f;
+	constexpr float thickness = 23.0f;
+	const c_vector position = g_ctx.m_local->get_abs_origin( );
 
-		if ( g_prediction.backup_data.m_flags & e_flags::fl_onground && ducked )
-			ducked = false;
+	const auto trace_ring = [ & ]( const float radius ) {
+		for ( float angle = 0.0f; angle < max_radius; angle += step ) {
+			const c_vector point( radius * std::cosf( angle ) + position.m_x,
+			                       radius * std::sinf( angle ) + position.m_y,
+			                       position.m_z );
+			c_vector point_end = point;
+			point_end.m_z -= 8192.0f;
+
+			trace_t trace = { };
+			ray_t ray( point, point_end );
+			c_trace_filter filter( g_ctx.m_local );
+			g_interfaces.m_engine_trace->trace_ray( ray, mask_playersolid, &filter, &trace );
+
+			if ( trace.m_fraction != 1.0f && trace.m_fraction != 0.0f )
+				return true;
+		}
+
+		return false;
+	};
+
+	// HydraWare checks three concentric rings around the player to find a nearby landing edge.
+	const bool has_ground = trace_ring( thickness ) || trace_ring( thickness - 2.0f ) || trace_ring( thickness - 20.0f );
+	bool unduck = ( g_ctx.m_cmd->m_buttons &= ~e_command_buttons::in_duck );
+
+	if ( unduck ) {
+		g_ctx.m_cmd->m_buttons &= ~e_command_buttons::in_duck;
+		g_ctx.m_cmd->m_buttons |= e_command_buttons::in_jump;
+		unduck = false;
 	}
-	else
-	{
-		if ( g_ctx.m_local->get_flags( ) & e_flags::fl_onground && !( g_prediction.backup_data.m_flags & e_flags::fl_onground ) )
-			g_ctx.m_cmd->m_buttons |= e_command_buttons::in_duck;
 
-		if ( g_ctx.m_local->get_flags( ) & e_flags::fl_onground )
-			g_ctx.m_cmd->m_buttons &= ~e_command_buttons::in_jump;
-
-		if ( !( g_ctx.m_local->get_flags( ) & fl_onground ) && g_prediction.backup_data.m_flags & fl_onground )
-			g_ctx.m_cmd->m_buttons &= ~e_command_buttons::in_duck;
+	if ( has_ground ) {
+		g_ctx.m_cmd->m_buttons |= e_command_buttons::in_duck;
+		g_ctx.m_cmd->m_buttons &= ~e_command_buttons::in_jump;
+		unduck = true;
 	}
 }
 
