@@ -53,7 +53,7 @@ jobs:
           $vcpkgRoot = Join-Path $env:VCPKG_INSTALLATION_ROOT 'installed/x86-windows-static-md'
           $oldCl = $oldCl -replace '/std:c17', ''
           $env:CL = '/wd4828 /I"' + $env:DXSDK_INCLUDE + '" /I"' + $vcpkgInclude + '" /I"' + $freetypeInclude + '" ' + $oldCl
-          $libraryPatterns = @('freetype*.lib', 'fmt*.lib', 'libpng*.lib', 'zlib*.lib', 'bz2*.lib', 'brotli*.lib')
+          $libraryPatterns = @('freetype*.lib', 'fmt*.lib', 'libpng*.lib', 'zlib*.lib', 'zs*.lib', 'bz2*.lib', 'brotli*.lib')
           $resolvedLibraries = @()
           foreach ($pattern in $libraryPatterns) {
             Get-ChildItem -Path (Join-Path $vcpkgRoot 'lib') -Filter $pattern -Recurse -File -ErrorAction SilentlyContinue |
