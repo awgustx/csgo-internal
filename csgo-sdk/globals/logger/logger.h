@@ -4,6 +4,7 @@
 #include <string>
 
 #include "../../dependencies/imgui/imgui.h"
+#include "../globals.h"
 #include "../../game/sdk/includes/includes.h"
 #include "../../globals/includes/includes.h"
 #include "../interfaces/interfaces.h"
