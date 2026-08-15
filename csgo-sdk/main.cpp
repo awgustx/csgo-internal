@@ -143,7 +143,7 @@ static unsigned long __stdcall on_attach( void* instance )
 		g_console.print( "initialised hooks" );
 
 	LI_FN( GetWindowsDirectoryA )( g_ctx.m_windows_directory, 64 );
-	g_console.print( std::vformat( "windows directory - {:s}", std::make_format_args( g_ctx.m_windows_directory ) ).c_str( ) );
+	g_console.print( fmt::format( "windows directory - {:s}", g_ctx.m_windows_directory ).c_str( ) );
 
 	g_fonts.on_attach( );
 	g_console.print( "initialised font file vector" );
