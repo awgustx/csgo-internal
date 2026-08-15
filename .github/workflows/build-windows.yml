@@ -5,114 +5,114 @@ name: Build Windows DLL
 on:
 
   workflow_dispatch:
-  
+
 
 
 permissions:
 
   contents: read
-  
+
 
 
 jobs:
 
   build:
-  
+
     runs-on: windows-2022
-    
+
     steps:
-    
+
       - name: Checkout
-      
+
         uses: actions/checkout@v4
-        
+
 
 
       - name: Configure MSBuild
-      
+
         uses: microsoft/setup-msbuild@v2
-        
+
 
 
       - name: Install D3DX9 SDK
-      
+
         shell: pwsh
-        
+
         run: |
-        
+
           $nuget = Join-Path $env:RUNNER_TEMP 'nuget.exe'
-          
+
           Invoke-WebRequest -Uri 'https://dist.nuget.org/win-x86-commandline/latest/nuget.exe' -OutFile $nuget
-          
+
           $out = Join-Path $env:RUNNER_TEMP 'd3dx'
-          
+
           & $nuget install Microsoft.DXSDK.D3DX -Version 9.29.952.8 -OutputDirectory $out -NonInteractive
-          
+
           if ($LASTEXITCODE -ne 0) { throw "NuGet D3DX9 installation failed with exit code $LASTEXITCODE" }
-          
+
           $pkg = Get-ChildItem $out -Directory -Filter 'Microsoft.DXSDK.D3DX.*' | Select-Object -First 1
-          
+
           if (-not $pkg) { throw 'D3DX9 package directory was not found' }
-          
+
           "DXSDK_DIR=$($pkg.FullName)\build\native\" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          
+
           "DXSDK_INCLUDE=$($pkg.FullName)\build\native\include" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          
+
           "DXSDK_LIB=$($pkg.FullName)\build\native\release\lib\x86" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          
+
           "DXSDK_BIN=$($pkg.FullName)\build\native\release\bin\x86" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          
+
 
 
       - name: Install project dependencies
-      
+
         shell: pwsh
-        
+
         run: |
-        
+
           $vcpkg = Join-Path $env:VCPKG_INSTALLATION_ROOT 'vcpkg.exe'
-          
+
           & $vcpkg install jsoncpp:x86-windows-static-md curl:x86-windows-static-md spdlog:x86-windows-static-md
-          
+
           if ($LASTEXITCODE -ne 0) { throw "vcpkg failed with exit code $LASTEXITCODE" }
-          
+
 
 
       - name: Build Release Win32 DLL
-      
+
         shell: pwsh
-        
+
         run: |
-        
+
           $oldCl = if ($env:CL) { $env:CL } else { '' }
-          
+
           $oldLink = if ($env:LINK) { $env:LINK } else { '' }
-          
+
           $env:CL = '/std:c++20 /I"' + $env:DXSDK_INCLUDE + '" ' + $oldCl
-          
+
           $env:LINK = '/LIBPATH:"' + $env:DXSDK_LIB + '" ' + $oldLink
-          
+
           msbuild .\csgo-sdk\csgo-sdk.vcxproj /m /t:Rebuild /p:Configuration=Release /p:Platform=Win32 /p:VcpkgEnabled=true /p:VcpkgTriplet=x86-windows-static-md /p:LanguageStandard=stdcpp20 /p:AdditionalDependencies=d3dx9.lib%3Bd3d9.lib%3Bd3dcompiler.lib
-          
+
 
 
       - name: Upload DLL
-      
+
         uses: actions/upload-artifact@v4
-        
+
         with:
-        
+
           name: csgo-internal-release-win32
-          
+
           path: |
-          
-                        
+
+
             csgo-sdk/release/*.dll
-            
+
             ${{ runner.temp }}/d3dx/Microsoft.DXSDK.D3DX.*/build/native/release/bin/x86/D3DX9_43.dll
-            
+
           if-no-files-found: error
-          
+
 
 
 
