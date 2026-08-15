@@ -1,5 +1,6 @@
 #include "scaleform.h"
 #include "../../../globals/config/config.h"
+#include "../../../globals/globals.h"
 #include "../../../globals/includes/includes.h"
 #include <fstream>
 #include <iosfwd>
@@ -59,7 +60,7 @@ void n_scaleform::impl_t::panorama_elements_t::do_radar( )
 		return;
 
 	g_scaleform.m_uiengine->run_script( g_scaleform.m_hud_panel,
-	                                    std::format( R"(
+	                                    fmt::format( R"(
             var radar = $.GetContextPanel().FindChildTraverse('HudRadar');
             var radar_content = radar.FindChildTraverse('Radar');
             var radar_label = radar.FindChildTraverse('DashboardLabel');
