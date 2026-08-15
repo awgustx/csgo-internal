@@ -1,6 +1,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #include "media_player.h"
+#include <fmt/format.h>
 #include <d3dx9tex.h>
 
 void n_media_player::impl_t::init( )
