@@ -181,7 +181,7 @@ const char8_t* n_utilities::impl_t::get_weapon_icon( short item_definition_index
 		return u8"\uE20D";
 	default:
 		g_console.print(
-			std::vformat( "! get_weapon_icon failed to find icon index: {} !", std::make_format_args( item_definition_index ) ).c_str( ) );
+			fmt::format( "! get_weapon_icon failed to find icon index: {} !", item_definition_index ).c_str( ) );
 
 		return u8"";
 	}
