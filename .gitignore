@@ -1,0 +1,4 @@
+CSGOSimple/bin/
+CSGOSimple/build/
+CSGOSimple/*.user
+.vs/
