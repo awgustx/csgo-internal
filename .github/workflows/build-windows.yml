@@ -44,13 +44,7 @@ jobs:
         
           $vcpkg = Join-Path $env:VCPKG_INSTALLATION_ROOT 'vcpkg.exe'
           
-          & $vcpkg install `
-          
-            jsoncpp:x64-windows `
-            
-            curl:x64-windows `
-            
-            spdlog:x64-windows
+          & $vcpkg install jsoncpp:x64-windows curl:x64-windows spdlog:x64-windows
             
           if ($LASTEXITCODE -ne 0) {
           
