@@ -50,7 +50,7 @@ jobs:
           $freetypeInclude = Join-Path $vcpkgInclude 'freetype2'
           $vcpkgLib = Join-Path $env:VCPKG_INSTALLATION_ROOT 'installed/x86-windows-static-md/lib'
           $oldCl = $oldCl -replace '/std:c17', ''
-          $env:CL = '/std:c++20 /wd4828 /I"' + $env:DXSDK_INCLUDE + '" /I"' + $vcpkgInclude + '" /I"' + $freetypeInclude + '" ' + $oldCl
+          $env:CL = '/wd4828 /I"' + $env:DXSDK_INCLUDE + '" /I"' + $vcpkgInclude + '" /I"' + $freetypeInclude + '" ' + $oldCl
           $env:LINK = '/LIBPATH:"' + $env:DXSDK_LIB + '" /LIBPATH:"' + $vcpkgLib + '" ' + $oldLink
           msbuild ./csgo-sdk/csgo-sdk.vcxproj /m /t:Rebuild /p:Configuration=Release /p:Platform=Win32 /p:VcpkgEnabled=true /p:VcpkgTriplet=x86-windows-static-md /p:LanguageStandard=stdcpp20 /p:AdditionalDependencies=d3dx9.lib%3Bd3d9.lib%3Bd3dcompiler.lib%3Bfreetype.lib
           if ($LASTEXITCODE -ne 0) { throw 'MSBuild failed' }
