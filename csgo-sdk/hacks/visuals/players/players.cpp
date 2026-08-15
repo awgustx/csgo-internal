@@ -1,6 +1,7 @@
 #pragma once
 #include "players.h"
 #include "../../../game/sdk/classes/c_csgo_hud_radar.h"
+#include "../../../globals/globals.h"
 #include "../../../game/sdk/includes/includes.h"
 #include "../../../globals/includes/includes.h"
 #include "../../avatar_cache/avatar_cache.h"
