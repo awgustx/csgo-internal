@@ -38,7 +38,7 @@ jobs:
         shell: pwsh
         run: |
           $vcpkg = Join-Path $env:VCPKG_INSTALLATION_ROOT 'vcpkg.exe'
-          & $vcpkg install freetype:x86-windows-static-md jsoncpp:x86-windows-static-md curl:x86-windows-static-md spdlog:x86-windows-static-md
+          & $vcpkg install 'freetype[brotli,bzip2,png,zlib]:x86-windows-static-md' fmt:x86-windows-static-md libpng:x86-windows-static-md zlib:x86-windows-static-md bzip2:x86-windows-static-md brotli:x86-windows-static-md jsoncpp:x86-windows-static-md curl:x86-windows-static-md spdlog:x86-windows-static-md --recurse
           if ($LASTEXITCODE -ne 0) { throw 'vcpkg dependency installation failed' }
 
       - name: Build Release Win32 DLL
@@ -50,11 +50,20 @@ jobs:
           $freetypeInclude = Join-Path $vcpkgInclude 'freetype2'
           $vcpkgLib = Join-Path $env:VCPKG_INSTALLATION_ROOT 'installed/x86-windows-static-md/lib'
           $vcpkgManualLib = Join-Path $vcpkgLib 'manual-link'
+          $vcpkgRoot = Join-Path $env:VCPKG_INSTALLATION_ROOT 'installed/x86-windows-static-md'
           $oldCl = $oldCl -replace '/std:c17', ''
           $env:CL = '/wd4828 /I"' + $env:DXSDK_INCLUDE + '" /I"' + $vcpkgInclude + '" /I"' + $freetypeInclude + '" ' + $oldCl
+          $libraryPatterns = @('freetype*.lib', 'fmt*.lib', 'libpng*.lib', 'zlib*.lib', 'bz2*.lib', 'brotli*.lib')
+          $resolvedLibraries = @()
+          foreach ($pattern in $libraryPatterns) {
+            Get-ChildItem -Path (Join-Path $vcpkgRoot 'lib') -Filter $pattern -Recurse -File -ErrorAction SilentlyContinue |
+              Where-Object { $_.Name -notmatch 'd\.lib$' } |
+              ForEach-Object { $resolvedLibraries += '"' + $_.FullName + '"' }
+          }
           Write-Host 'Resolved vcpkg static libraries:'
-          Get-ChildItem -Path $vcpkgLib, $vcpkgManualLib -Filter '*.lib' -ErrorAction SilentlyContinue | Where-Object { $_.Name -match '^(fmt|freetype|libpng|zlib|bz2|brotli)' } | Select-Object -ExpandProperty FullName
-          $env:LINK = '/LIBPATH:"' + $env:DXSDK_LIB + '" /LIBPATH:"' + $vcpkgLib + '" /LIBPATH:"' + $vcpkgManualLib + '" /DEFAULTLIB:freetype.lib /DEFAULTLIB:fmt.lib /DEFAULTLIB:libpng16.lib /DEFAULTLIB:zlib.lib /DEFAULTLIB:bz2.lib /DEFAULTLIB:brotlidec.lib /DEFAULTLIB:brotlienc.lib /DEFAULTLIB:brotlicommon.lib ' + $oldLink
+          $resolvedLibraries | ForEach-Object { Write-Host $_ }
+          if (-not $resolvedLibraries) { throw 'No vcpkg static libraries were discovered' }
+          $env:LINK = '/LIBPATH:"' + $env:DXSDK_LIB + '" /LIBPATH:"' + $vcpkgLib + '" /LIBPATH:"' + $vcpkgManualLib + '" ' + ($resolvedLibraries -join ' ') + ' ' + $oldLink
           msbuild ./csgo-sdk/csgo-sdk.vcxproj /m /t:Rebuild /p:Configuration=Release /p:Platform=Win32 /p:VcpkgEnabled=true /p:VcpkgTriplet=x86-windows-static-md /p:LanguageStandard=stdcpp20 /p:AdditionalDependencies=d3dx9.lib%3Bd3d9.lib%3Bd3dcompiler.lib%3Bfreetype.lib%3Bfmt.lib
           if ($LASTEXITCODE -ne 0) { throw 'MSBuild failed' }
           Copy-Item (Join-Path $env:DXSDK_BIN 'D3DX9_43.dll') -Destination './csgo-sdk/release/D3DX9_43.dll' -Force
