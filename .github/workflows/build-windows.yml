@@ -58,9 +58,9 @@ jobs:
           
           "DXSDK_INCLUDE=$($pkg.FullName)\build\native\include" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           
-          "DXSDK_LIB=$($pkg.FullName)\build\native\release\lib\x64" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "DXSDK_LIB=$($pkg.FullName)\build\native\release\lib\x86" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           
-          "DXSDK_BIN=$($pkg.FullName)\build\native\release\bin\x64" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "DXSDK_BIN=$($pkg.FullName)\build\native\release\bin\x86" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           
 
 
@@ -72,13 +72,13 @@ jobs:
         
           $vcpkg = Join-Path $env:VCPKG_INSTALLATION_ROOT 'vcpkg.exe'
           
-          & $vcpkg install jsoncpp:x64-windows curl:x64-windows spdlog:x64-windows
+          & $vcpkg install jsoncpp:x86-windows-static-md curl:x86-windows-static-md spdlog:x86-windows-static-md
           
           if ($LASTEXITCODE -ne 0) { throw "vcpkg failed with exit code $LASTEXITCODE" }
           
 
 
-      - name: Build Release x64 DLL
+      - name: Build Release Win32 DLL
       
         shell: pwsh
         
@@ -92,7 +92,7 @@ jobs:
           
           $env:LINK = '/LIBPATH:"' + $env:DXSDK_LIB + '" ' + $oldLink
           
-          msbuild .\csgo-sdk\csgo-sdk.vcxproj /m /t:Rebuild /p:Configuration=Release /p:Platform=x64 /p:VcpkgEnabled=true /p:LanguageStandard=stdcpp20 /p:AdditionalDependencies=d3dx9.lib%3Bd3d9.lib%3Bd3dcompiler.lib
+          msbuild .\csgo-sdk\csgo-sdk.vcxproj /m /t:Rebuild /p:Configuration=Release /p:Platform=Win32 /p:VcpkgEnabled=true /p:VcpkgTriplet=x86-windows-static-md /p:LanguageStandard=stdcpp20 /p:AdditionalDependencies=d3dx9.lib%3Bd3d9.lib%3Bd3dcompiler.lib
           
 
 
@@ -102,15 +102,14 @@ jobs:
         
         with:
         
-          name: csgo-internal-release-x64
+          name: csgo-internal-release-win32
           
           path: |
           
-            csgo-sdk/x64/Release/*.dll
-            
+                        
             csgo-sdk/release/*.dll
             
-            ${{ runner.temp }}/d3dx/Microsoft.DXSDK.D3DX.*/build/native/release/bin/x64/D3DX9_43.dll
+            ${{ runner.temp }}/d3dx/Microsoft.DXSDK.D3DX.*/build/native/release/bin/x86/D3DX9_43.dll
             
           if-no-files-found: error
           
