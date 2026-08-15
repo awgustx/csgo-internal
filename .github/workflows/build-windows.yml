@@ -1,115 +1,54 @@
 name: Build Windows DLL
 
-
-
 on:
-
   workflow_dispatch:
-  
-
 
 permissions:
-
   contents: read
-  
-
 
 jobs:
-
   build:
-  
     runs-on: windows-2022
-    
-
-
     steps:
-    
       - name: Checkout
-      
         uses: actions/checkout@v4
-        
-
 
       - name: Configure MSBuild
-      
         uses: microsoft/setup-msbuild@v2
-        
 
+      - name: Install D3DX9 SDK
+        shell: pwsh
+        run: |
+          $nuget = Join-Path $env:RUNNER_TEMP 'nuget.exe'
+          Invoke-WebRequest -Uri 'https://dist.nuget.org/win-x86-commandline/latest/nuget.exe' -OutFile $nuget
+          $out = Join-Path $env:RUNNER_TEMP 'd3dx'
+          & $nuget install Microsoft.DXSDK.D3DX -Version 9.29.952.8 -OutputDirectory $out -NonInteractive
+          if ($LASTEXITCODE -ne 0) { throw "NuGet D3DX9 installation failed with exit code $LASTEXITCODE" }
+          $pkg = Get-ChildItem $out -Directory -Filter 'Microsoft.DXSDK.D3DX.*' | Select-Object -First 1
+          if (-not $pkg) { throw 'D3DX9 package directory was not found' }
+          "DXSDK_DIR=$($pkg.FullName)\build\native\" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "DXSDK_INCLUDE=$($pkg.FullName)\build\native\include" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "DXSDK_LIB=$($pkg.FullName)\build\native\release\lib\x64" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "DXSDK_BIN=$($pkg.FullName)\build\native\release\bin\x64" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Install project dependencies
-      
         shell: pwsh
-        
         run: |
-        
           $vcpkg = Join-Path $env:VCPKG_INSTALLATION_ROOT 'vcpkg.exe'
-          
           & $vcpkg install jsoncpp:x64-windows curl:x64-windows spdlog:x64-windows
-            
-          if ($LASTEXITCODE -ne 0) {
-          
-            throw "vcpkg failed with exit code $LASTEXITCODE"
-            
-          }
-          
-
+          if ($LASTEXITCODE -ne 0) { throw "vcpkg failed with exit code $LASTEXITCODE" }
 
       - name: Build Release x64 DLL
-      
         shell: pwsh
-        
         run: |
-        
-          msbuild .\csgo-sdk\csgo-sdk.vcxproj /m /t:Rebuild /p:Configuration=Release /p:Platform=x64 /p:VcpkgEnabled=true
-            
+          msbuild .\csgo-sdk\csgo-sdk.vcxproj /m /t:Rebuild /p:Configuration=Release /p:Platform=x64 /p:VcpkgEnabled=true /p:LanguageStandard=stdcpplatest /p:AdditionalIncludeDirectories="$env:DXSDK_INCLUDE" /p:AdditionalLibraryDirectories="$env:DXSDK_LIB" /p:AdditionalDependencies="d3dx9.lib;d3d9.lib;d3dcompiler.lib"
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+      - name: Upload DLL
+        uses: actions/upload-artifact@v4
+        with:
+          name: csgo-internal-release-x64
+          path: |
+            csgo-sdk/x64/Release/*.dll
+            csgo-sdk/release/*.dll
+            ${{ runner.temp }}/d3dx/Microsoft.DXSDK.D3DX.*/build/native/release/bin/x64/D3DX9_43.dll
+          if-no-files-found: error
