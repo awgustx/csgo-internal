@@ -1,3 +1,4 @@
+#include "../../globals/globals.h"
 #include "../../game/sdk/includes/includes.h"
 #include "../../globals/logger/logger.h"
 #include "../../hacks/misc/scaleform/scaleform.h"

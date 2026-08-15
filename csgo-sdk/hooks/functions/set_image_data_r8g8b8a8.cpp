@@ -1,3 +1,4 @@
+#include "../../globals/globals.h"
 #include "../../globals/includes/includes.h"
 #include "../../hacks/misc/scaleform/scaleform.h"
 #include "../hooks.h"
@@ -53,7 +54,9 @@ bool __fastcall n_detoured_functions::set_image_data_r8g8b8a8( void* ecx, void* 
 			arg2 = 6;
 			return original( ecx, edx, replacement_data, replacement_size, filename, replacement_w, replacement_h, arg1, arg2 );
 		} else {
-			g_console.print( std::format( "!! didn't replace {}", copy ).c_str( ) );
+				std::string message = "!! didn't replace ";
+				message += copy;
+				g_console.print( message.c_str( ) );
 		}
 	}
 

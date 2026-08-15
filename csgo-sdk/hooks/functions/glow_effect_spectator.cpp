@@ -1,3 +1,4 @@
+#include "../../globals/globals.h"
 #include "../../game/sdk/includes/includes.h"
 #include "../../globals/includes/includes.h"
 #include "../../hacks/menu/menu.h"

@@ -1,9 +1,9 @@
+#include "../../globals/globals.h"
 #include "../../game/sdk/includes/includes.h"
 #include "../hooks.h"
 
 #include "../../dependencies/imgui/imgui.h"
 #include "../../globals/config/variables.h"
-#include "../../globals/globals.h"
 #include "../../globals/interfaces/interfaces.h"
 #include "../../hacks/lagcomp/lagcomp.h"
 #include "../../utilities/console/console.h"
