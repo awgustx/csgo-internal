@@ -1,5 +1,6 @@
 #include "utilities.h"
 
+#include "../globals/globals.h"
 #include "../game/sdk/includes/includes.h"
 #include "../globals/includes/includes.h"
 
