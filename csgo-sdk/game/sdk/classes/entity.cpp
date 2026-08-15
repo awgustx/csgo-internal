@@ -1,3 +1,4 @@
+#include "../../../globals/globals.h"
 #include "../../../globals/includes/includes.h"
 #include "entity.h"
 #include "../includes/includes.h"
