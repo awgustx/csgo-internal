@@ -1,4 +1,5 @@
 #include "misc.h"
+#include "../../globals/globals.h"
 #include "../../game/sdk/includes/includes.h"
 #include "../../globals/includes/includes.h"
 #include "../../globals/logger/logger.h"
@@ -174,11 +175,13 @@ void n_misc::impl_t::on_end_scene( )
 			} else {
 				const auto cp_key = GET_VARIABLE( g_variables.m_practice_cp_key, key_bind_t ).m_key;
 
-				ImGui::Text( std::format( "{} - checkpoint", cp_key != 0 ? FILTERED_KEY_NAMES[ cp_key ] : "none" ).c_str( ) );
+					const std::string checkpoint_label = std::string( cp_key != 0 ? FILTERED_KEY_NAMES[ cp_key ] : "none" ) + " - checkpoint";
+					ImGui::Text( checkpoint_label.c_str( ) );
 
 				const auto tp_key = GET_VARIABLE( g_variables.m_practice_tp_key, key_bind_t ).m_key;
 
-				ImGui::Text( std::format( "{} - teleport", tp_key != 0 ? FILTERED_KEY_NAMES[ tp_key ] : "none" ).c_str( ) );
+					const std::string teleport_label = std::string( tp_key != 0 ? FILTERED_KEY_NAMES[ tp_key ] : "none" ) + " - teleport";
+					ImGui::Text( teleport_label.c_str( ) );
 			}
 		}
 		ImGui::End( );
@@ -221,11 +224,9 @@ void n_misc::impl_t::practice_window_think( )
 
 		g_interfaces.m_engine_client->client_cmd_unrestricted(
 			std::string( "setpos " )
-				.append( std::vformat( "{} {} {}", std::make_format_args( g_misc.practice.saved_position.m_x, g_misc.practice.saved_position.m_y,
-		                                                                  g_misc.practice.saved_position.m_z ) ) )
+				.append( fmt::format( "{} {} {}", g_misc.practice.saved_position.m_x, g_misc.practice.saved_position.m_y, g_misc.practice.saved_position.m_z ) )
 				.append( ";setang " )
-				.append( std::vformat( "{} {} {}", std::make_format_args( g_misc.practice.saved_angles.m_x, g_misc.practice.saved_angles.m_y,
-		                                                                  g_misc.practice.saved_angles.m_z ) ) )
+				.append( fmt::format( "{} {} {}", g_misc.practice.saved_angles.m_x, g_misc.practice.saved_angles.m_y, g_misc.practice.saved_angles.m_z ) )
 				.c_str( ) );
 	}
 }
@@ -294,8 +295,8 @@ void n_misc::impl_t::draw_spectating_local( )
 			return;
 
 		spectator_data.push_back(
-			{ std::vformat( "{} | {}", std::make_format_args( std::string( spectating_info.m_name ).substr( 0, 12 ).append( "..." ),
-		                                                      get_player_spec_type( entity->get_observer_mode( ) ) ) ),
+			{ fmt::format( "{} | {}", std::string( spectating_info.m_name ).substr( 0, 12 ).append( "..." ),
+				                           get_player_spec_type( entity->get_observer_mode( ) ) ),
 		      spectating_info.m_fake_player ? entity_team == e_team_id::team_tt   ? g_render.m_terrorist_avatar
 		                                      : entity_team == e_team_id::team_ct ? g_render.m_counter_terrorist_avatar
 		                                                                          : nullptr
@@ -368,8 +369,8 @@ void n_misc::impl_t::draw_spectator_list( )
 		if ( spectating_info.m_is_hltv )
 			return;
 
-		spectator_data.push_back( { std::format( ( "{} -> {}" ), std::string( spectating_info.m_name ).substr( 0, 24 ),
-		                                         std::string( spectated_info.m_name ).substr( 0, 24 ) ),
+		spectator_data.push_back( { fmt::format( "{} -> {}", std::string( spectating_info.m_name ).substr( 0, 24 ),
+			                                     std::string( spectated_info.m_name ).substr( 0, 24 ) ),
 		                            spectating_info.m_fake_player ? entity_team == e_team_id::team_tt   ? g_render.m_terrorist_avatar
 		                                                            : entity_team == e_team_id::team_ct ? g_render.m_counter_terrorist_avatar
 		                                                                                                : nullptr
