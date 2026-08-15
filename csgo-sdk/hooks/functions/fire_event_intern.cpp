@@ -80,15 +80,13 @@ bool __fastcall n_detoured_functions::fire_event_intern( void* ecx, void* edx, g
 
 			if ( g_config.get< std::vector< bool > >( g_variables.m_log_types )[ e_log_types::log_type_hit_enemy ] ) {
 				g_logger.print(
-					std::vformat( "hit {} for {} in the {}\n", std::make_format_args( m_name, m_damage, g_utilities.m_hit_groups[ m_group ] ) ),
+					fmt::format( "hit {} for {} in the {}\n", m_name, m_damage, g_utilities.m_hit_groups[ m_group ] ),
 					"[damage]" );
 
 				const std::string out =
-					std::vformat( "hit {} | dealt: {}hp | hitgroup: {} | {} health remaining | backtrack: {} ticks\n",
-				                  std::make_format_args( m_name, m_damage, g_utilities.m_hit_groups[ m_group ], m_health,
-				                                         g_ctx.m_record ? g_math.time_to_ticks( std::fabsf( m_attacker_ent->get_simulation_time( ) -
-				                                                                                            g_ctx.m_record->m_sim_time ) )
-				                                                        : 0 ) );
+					fmt::format( "hit {} | dealt: {}hp | hitgroup: {} | {} health remaining | backtrack: {} ticks\n", m_name, m_damage,
+				              g_utilities.m_hit_groups[ m_group ], m_health,
+				              g_ctx.m_record ? g_math.time_to_ticks( std::fabsf( m_attacker_ent->get_simulation_time( ) - g_ctx.m_record->m_sim_time ) ) : 0 );
 
 				g_interfaces.m_convar->console_color_printf( accent_color, "[damage] " );
 				g_interfaces.m_convar->console_color_printf( c_unsigned_char_color::console_text_color( ), out.c_str( ) );
