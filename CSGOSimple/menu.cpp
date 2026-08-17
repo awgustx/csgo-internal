@@ -477,9 +477,21 @@ void Menu::Render()
 				ImGui::Checkbox("Edge bug", &g_Options.edge_bug); ImGui::SameLine(group_w - 50);          ImGui::Hotkey("  ", &g_Options.edge_bug_key);
 				ImGui::Checkbox("Jump bug", &g_Options.jump_bug); ImGui::SameLine(group_w - 50);          ImGui::Hotkey("   ", &g_Options.jump_bug_key);
 				ImGui::Checkbox("Edge jump", &g_Options.edgejump.enabled); ImGui::SameLine(group_w - 50); ImGui::Hotkey("    ", &g_Options.edgejump.hotkey);
-				ImGui::Checkbox("Duck in Air", &g_Options.edgejump.edge_jump_duck_in_air);
-			}
-			ImGui::EndChild();
+					ImGui::Checkbox("Duck in Air", &g_Options.edgejump.edge_jump_duck_in_air);
+
+					ImGui::Separator("Delusional movement");
+					ImGui::Checkbox("Enable imported base", &g_Options.delusional_movement);
+					if (g_Options.delusional_movement)
+					{
+						ImGui::Checkbox("Delay hop", &g_Options.delusional_delay_hop); ImGui::SameLine(group_w - 50); ImGui::Hotkey("    ", &g_Options.delusional_delay_hop_key);
+						ImGui::Checkbox("Null strafing", &g_Options.delusional_null_strafing);
+						if (g_Options.delusional_delay_hop)
+							ImGui::SliderInt("Delay ticks", &g_Options.delusional_delay_hop_ticks, 0, 16, "%i");
+						ImGui::Checkbox("Crouch bug", &g_Options.delusional_crouch_bug); ImGui::SameLine(group_w - 50); ImGui::Hotkey("     ", &g_Options.delusional_crouch_bug_key);
+						ImGui::Checkbox("Ladder glide", &g_Options.delusional_ladder_glide); ImGui::SameLine(group_w - 50); ImGui::Hotkey("      ", &g_Options.delusional_ladder_glide_key);
+					}
+				}
+				ImGui::EndChild();
 
 			ImGui::SetCursorPos({ 41 + 166 + 166,65 });
 			ImGui::BeginChild("##3", { 166,276 });

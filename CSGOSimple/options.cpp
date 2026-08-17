@@ -232,6 +232,15 @@ void Options::SetupMisc()
 	SetupValue(g_Options.edge_bug_key, "Misc", "edge_bug_key");
 	SetupValue(g_Options.jump_bug, "Misc", "jump_bug");
 	SetupValue(g_Options.jump_bug_key, "Misc", "jump_bug_key");
+	SetupValue(g_Options.delusional_movement, "Misc", "Delusional movement");
+	SetupValue(g_Options.delusional_delay_hop, "Misc", "Delusional delay hop");
+	SetupValue(g_Options.delusional_delay_hop_key, "Misc", "Delusional delay hop key");
+	SetupValue(g_Options.delusional_null_strafing, "Misc", "Delusional null strafing");
+	SetupValue(g_Options.delusional_delay_hop_ticks, "Misc", "Delusional delay hop ticks");
+	SetupValue(g_Options.delusional_crouch_bug, "Misc", "Delusional crouch bug");
+	SetupValue(g_Options.delusional_crouch_bug_key, "Misc", "Delusional crouch bug key");
+	SetupValue(g_Options.delusional_ladder_glide, "Misc", "Delusional ladder glide");
+	SetupValue(g_Options.delusional_ladder_glide_key, "Misc", "Delusional ladder glide key");
 	SetupValue(g_Options.edgejump.enabled, "Misc", "Edge jump");
 	SetupValue(g_Options.edgejump.hotkey, "Misc", "edgejump_key");
 	SetupValue(g_Options.edgejump.edge_jump_duck_in_air, "Misc", "Duck in Air");

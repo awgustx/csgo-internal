@@ -8,6 +8,7 @@
 #include "helpers/utils.hpp"
 #include "features/bhop.hpp"
 #include "features/hotwheels_movement.hpp"
+#include "features/delusional_movement.hpp"
 #include "features/chams.hpp"
 
 #include "features/visuals.hpp"
@@ -190,10 +191,12 @@ namespace Hooks {
 		if (!cmd || !cmd->command_number)
 			return;
 		
-		if (Menu::Get().IsVisible())
-			cmd->buttons &= ~IN_ATTACK;
+			if (Menu::Get().IsVisible())
+				cmd->buttons &= ~IN_ATTACK;
 
-					if (g_Options.misc_bhop)
+			DelusionalMovement::OnCreateMovePre(cmd);
+
+						if (g_Options.misc_bhop)
 				BunnyHop::OnCreateMove(cmd);
 			if (GetAsyncKeyState(g_Options.AutoStafe_key))
 				BunnyHop::AutoStafe(cmd);
@@ -211,9 +214,10 @@ namespace Hooks {
 			g_Legitbot->Run(cmd);
 			if (g_Options.jump_bug && GetAsyncKeyState(g_Options.jump_bug_key))
 				HotwheelsMovement::JumpBug(cmd, flags);
-			if (g_Options.edge_bug && GetAsyncKeyState(g_Options.edge_bug_key))
-				HotwheelsMovement::EdgeBug(cmd, flags, *prediction);
-			prediction->EndPrediction();
+				if (g_Options.edge_bug && GetAsyncKeyState(g_Options.edge_bug_key))
+					HotwheelsMovement::EdgeBug(cmd, flags, *prediction);
+				prediction->EndPrediction();
+			DelusionalMovement::OnCreateMovePost(cmd, flags, *prediction);
 
 		if (g_Options.edgejump.enabled && GetAsyncKeyState(g_Options.edgejump.hotkey))
 		{

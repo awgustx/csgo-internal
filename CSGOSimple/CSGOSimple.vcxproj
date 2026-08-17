@@ -100,6 +100,7 @@
     <ClCompile Include="features\autowall.cpp" />
         <ClCompile Include="features\bhop.cpp" />
     <ClCompile Include="features\hotwheels_movement.cpp" />
+    <ClCompile Include="features\delusional_movement.cpp" />
     <ClCompile Include="features\chams.cpp" />
 
     <ClCompile Include="features\glow.cpp" />
@@ -154,6 +155,7 @@
     <ClInclude Include="valve_sdk\Misc\datamap.hpp" />
         <ClInclude Include="features\bhop.hpp" />
     <ClInclude Include="features\hotwheels_movement.hpp" />
+    <ClInclude Include="features\delusional_movement.hpp" />
     <ClInclude Include="features\chams.hpp" />
 
     <ClInclude Include="features\glow.hpp" />

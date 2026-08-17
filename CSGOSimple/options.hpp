@@ -202,9 +202,19 @@ public:
 		} edgejump;
 		bool edge_bug;
 		int edge_bug_key;
-		bool jump_bug = false;
-		int jump_bug_key;
-		int glow_enemies_type;
+			bool jump_bug = false;
+			int jump_bug_key;
+
+			bool delusional_movement = false;
+			bool delusional_delay_hop = false;
+			int delusional_delay_hop_key = 0;
+			bool delusional_null_strafing = false;
+			int delusional_delay_hop_ticks = 1;
+			bool delusional_crouch_bug = false;
+			int delusional_crouch_bug_key = 0;
+			bool delusional_ladder_glide = false;
+			int delusional_ladder_glide_key = 0;
+			int glow_enemies_type;
 		bool sniper_xhair = false;
 
 		// 

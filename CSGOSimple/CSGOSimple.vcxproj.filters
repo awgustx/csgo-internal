@@ -86,6 +86,9 @@
     <ClCompile Include="features\bhop.cpp">
       <Filter>Source Files\features</Filter>
     </ClCompile>
+    <ClCompile Include="features\delusional_movement.cpp">
+      <Filter>Source Files\features</Filter>
+    </ClCompile>
     <ClCompile Include="features\chams.cpp">
       <Filter>Source Files\features</Filter>
     </ClCompile>
@@ -359,6 +362,9 @@
       <Filter>Header Files\imgui</Filter>
     </ClInclude>
     <ClInclude Include="features\bhop.hpp">
+      <Filter>Header Files\features</Filter>
+    </ClInclude>
+    <ClInclude Include="features\delusional_movement.hpp">
       <Filter>Header Files\features</Filter>
     </ClInclude>
     <ClInclude Include="features\chams.hpp">
